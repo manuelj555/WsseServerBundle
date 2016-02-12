@@ -26,5 +26,7 @@ class WsseServerExtension extends Extension
         $loader->load('services.yml');
 
         $container->setParameter('wsse_server.applications', $config['applications']);
+
+        $container->setAlias('wsse_server.application_repository', $config['application_repository_service']);
     }
 }

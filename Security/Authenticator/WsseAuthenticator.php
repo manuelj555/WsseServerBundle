@@ -6,6 +6,8 @@ use BeSimple\SoapBundle\Soap\SoapHeader;
 use BeSimple\SoapBundle\Soap\SoapRequest;
 use BeSimple\SoapBundle\Util\Collection;
 use Doctrine\Common\Persistence\ObjectManager;
+use Ku\Bundle\WsseServerBundle\Application\ApplicationInterface;
+use Ku\Bundle\WsseServerBundle\Application\ApplicationRepositoryInterface;
 use Ku\Bundle\WsseServerBundle\Entity\Nonce;
 
 /**
@@ -19,21 +21,28 @@ class WsseAuthenticator
     private $om;
 
     /**
-     * @var array
+     * @var ApplicationRepositoryInterface
      */
-    private $applications = [];
+    private $applicationRepository;
 
     /**
      * WsseAuthenticator constructor.
      * @param ObjectManager $om
-     * @param array $applications
+     * @param ApplicationRepositoryInterface $applicationRepository
      */
-    public function __construct(ObjectManager $om, array $applications)
+    public function __construct(ObjectManager $om, ApplicationRepositoryInterface $applicationRepository)
     {
         $this->om = $om;
-        $this->applications = $applications;
+        $this->applicationRepository = $applicationRepository;
     }
 
+    /**
+     * @param SoapRequest $request
+     *
+     * @return ApplicationInterface
+     *
+     * @throws \SoapFault
+     */
     public function authenticate(SoapRequest $request)
     {
         $this->verifySoapHeaders($headers = $request->getSoapHeaders());
@@ -88,37 +97,28 @@ class WsseAuthenticator
     }
 
     /**
-     * @param $username
-     * @return bool
-     */
-    protected function applicationExists($username)
-    {
-        return isset($this->applications[(string)$username]);
-    }
-
-    /**
-     * @param $username
-     * @return array
+     * @param string $username
+     * @return ApplicationInterface
      * @throws \SoapFault
      */
     protected function getApplication($username)
     {
-        if(!$this->applicationExists($username)){
+        try {
+            return $this->applicationRepository->findByUsername((string)$username);
+        } catch (\InvalidArgumentException $ex) {
             throw new \SoapFault('INVALID_USERNAME', 'The Username cannot be recognized');
         }
-
-        return $this->applications[(string)$username];
     }
 
     /**
-     * @param $nonce
-     * @param $headers
-     * @param $application
+     * @param string $nonce
+     * @param Collection $headers
+     * @param ApplicationInterface $application
      * @throws \SoapFault
      */
-    protected function verifyCredentials($nonce, $headers, $application)
+    protected function verifyCredentials($nonce, Collection $headers, ApplicationInterface $application)
     {
-        $hash = base64_encode(sha1($nonce->getValue().$headers->get('Created').$application['password']));
+        $hash = base64_encode(sha1($nonce->getValue().$headers->get('Created').$application->getPassword()));
 
         if ($headers->get('PasswordDigest') != $hash) {
             throw new \SoapFault('INVALID_PASSWORD', 'The application cannot be recognized');
