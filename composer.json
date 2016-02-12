@@ -1,0 +1,27 @@
+{
+    "name": "manuelj555/wsse-server-bundle",
+    "type": "symfony-bundle",
+    "description": "Symfony Wsse Server Bundle",
+    "keywords": ["wsse", "security", "bundle", "authentication", "soap", "besimple"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Manuel Aguirre",
+            "email": "programador.manuel@gmail.com",
+            "homepage": "http://manuelj555.github.io/"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "symfony/framework-bundle": "~2.3|~3.0",
+        "besimple/soap": "0.2.*"
+    },
+    "autoload": {
+        "psr-4": { "Ku\\Bundle\\WsseServerBundle\\": "" }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}

@@ -1,0 +1,24 @@
+services:
+    wsse_server.security.wsse_authenticator:
+        class: Ku\Bundle\WsseServerBundle\Security\Authenticator\WsseAuthenticator
+        arguments:
+            - @doctrine.orm.entity_manager
+            - %wsse_server.applications%
+
+    wsse_server.listener.check_wsse_security_listener:
+        class: Ku\Bundle\WsseServerBundle\EventListener\CheckWsseSecurityLisener
+        autowire: true
+        tags:
+            - { name: 'kernel.event_subscriber' }
+
+    wsse_server.service_definition.annotation_class_loader:
+        class: Ku\Bundle\WsseServerBundle\ServiceDefinition\Loader\AnnotationClassLoader
+        decorates: besimple.soap.definition.loader.annot_class
+        arguments:
+            - @wsse_server.service_definition.annotation_class_loader.inner
+            - @annotation_reader
+        autowire: true
+
+    wsse_server.security.nonce_generator:
+        class: Ku\Bundle\WsseServerBundle\Security\NonceGenerator
+        arguments: [ @doctrine.orm.entity_manager ]
